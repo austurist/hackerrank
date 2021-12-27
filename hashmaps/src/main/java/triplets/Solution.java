@@ -15,55 +15,62 @@ import static java.util.stream.Collectors.toList;
 public class Solution {
 
 
-    static long nCk(long N, long K) {
-        long nCk = 1L;
-        for (int k = 0; k < K; k++) {
-            nCk = nCk * (N-k) / (k+1);
+    static List<Integer> getOccurences(Map<Long, List<Integer>> indicesmap, Long e) {
+        List<Integer> result = Collections.emptyList();
+        if (indicesmap.containsKey(e)) {
+            result = indicesmap.get(e);
         }
 
-        return nCk;
+        return result;
     }
 
     // Complete the countTriplets function below.
     static long countTriplets(List<Long> arr, long r) {
+        long count = 0;
 
-        Map<Long, Long> elements = new HashMap<>();
-        arr
-            .stream()
-            .forEach(elt -> elements.merge(elt, 1L, Long::sum));
+        // store indices in map
+        Stream<Integer> numbers = IntStream.iterate(0, num -> num + 1).boxed();
+        Iterator<Integer> iterator = numbers.iterator();
 
+        Map<Long, List<Integer>> indicesmap = arr
+                .stream()
+                .sequential()
+                .map(elt -> new AbstractMap.SimpleEntry<Long, Integer>(elt, iterator.next()))
+                .collect(Collectors.groupingBy(
+                        AbstractMap.SimpleEntry::getKey,
+                        Collectors.mapping(AbstractMap.SimpleEntry::getValue, toList())
+                ));
 
-        List<Long> dselts = arr.stream().sorted().distinct().collect(Collectors.toList());
-        long count = 0L;
-        for (Long e : dselts) {
-            Map<Long, AbstractMap.SimpleEntry<Long, Long>> combinations = new HashMap<>();
-            long e1 = e;
-            long n1 = elements.getOrDefault(e1, 0L);
-            combinations.merge(e1, new AbstractMap.SimpleEntry<>(n1, 1L),
-                    (ent1, ent2) -> new AbstractMap.SimpleEntry<>(ent1.getKey(), ent1.getValue()+ent2.getValue()));
+        List<Long> uniqueelements = arr.stream().sorted().distinct().collect(toList());
+        for (Long e1 : uniqueelements) {
+            Long e2 = e1 * r;
+            Long e3 = e1 * r * r;
 
-            long e2 = e * r;
-            long n2 = elements.getOrDefault(e2, 0L);
-            combinations.merge(e2, new AbstractMap.SimpleEntry<>(n2, 1L),
-                    (ent1, ent2) -> new AbstractMap.SimpleEntry<>(ent1.getKey(), ent1.getValue()+ent2.getValue()));
+            if (uniqueelements.contains(e2) && uniqueelements.contains(e3)) {
+                List<Integer> e1elts = getOccurences(indicesmap, e1);
+                List<Integer> e2elts = getOccurences(indicesmap, e2);
+                List<Integer> e3elts = getOccurences(indicesmap, e3);
 
-            long e3 = e * r * r;
-            long n3 = elements.getOrDefault(e3, 0L);
-            combinations.merge(e3, new AbstractMap.SimpleEntry<>(n3, 1L),
-                    (ent1, ent2) -> new AbstractMap.SimpleEntry<>(ent1.getKey(), ent1.getValue()+ent2.getValue()));
+                for (Integer j : e2elts) {
+                    long n1 = 0;
+                    for (Integer e1i : e1elts) {
+                        if (e1i < j)
+                            n1++;
+                        else
+                            break;
+                    }
 
-            if (n1*n2*n3 == 0) {
-                continue;
+                    long n3 = 0;
+                    for (Integer e3k : e3elts) {
+                        if (j < e3k)
+                            n3++;
+                        else
+                            continue;
+                    }
+
+                    count += n1*n3;
+                }
             }
-
-            count += combinations
-                    .entrySet()
-                    .stream()
-                    .map(nkEntry -> {
-                        return nCk(nkEntry.getValue().getKey(), nkEntry.getValue().getValue());
-                    })
-                    .reduce(1L, Math::multiplyExact);
-
         }
 
         return count;
