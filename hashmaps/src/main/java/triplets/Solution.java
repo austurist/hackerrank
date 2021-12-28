@@ -15,62 +15,23 @@ import static java.util.stream.Collectors.toList;
 public class Solution {
 
 
-    static List<Integer> getOccurences(Map<Long, List<Integer>> indicesmap, Long e) {
-        List<Integer> result = Collections.emptyList();
-        if (indicesmap.containsKey(e)) {
-            result = indicesmap.get(e);
-        }
-
-        return result;
-    }
-
     // Complete the countTriplets function below.
     static long countTriplets(List<Long> arr, long r) {
         long count = 0;
+        Map<Long, Long> histogram = new HashMap<>();
+        Map<Long, Long> counter = new HashMap<>();
 
-        // store indices in map
-        Stream<Integer> numbers = IntStream.iterate(0, num -> num + 1).boxed();
-        Iterator<Integer> iterator = numbers.iterator();
+        for (int i = 0; i < arr.size(); i++) {
+            long bigger = arr.get(i);
+            long smaller = bigger / r;
+            boolean potentialtriplet = (bigger % r == 0);
 
-        Map<Long, List<Integer>> indicesmap = arr
-                .stream()
-                .sequential()
-                .map(elt -> new AbstractMap.SimpleEntry<Long, Integer>(elt, iterator.next()))
-                .collect(Collectors.groupingBy(
-                        AbstractMap.SimpleEntry::getKey,
-                        Collectors.mapping(AbstractMap.SimpleEntry::getValue, toList())
-                ));
-
-        List<Long> uniqueelements = arr.stream().sorted().distinct().collect(toList());
-        for (Long e1 : uniqueelements) {
-            Long e2 = e1 * r;
-            Long e3 = e1 * r * r;
-
-            if (uniqueelements.contains(e2) && uniqueelements.contains(e3)) {
-                List<Integer> e1elts = getOccurences(indicesmap, e1);
-                List<Integer> e2elts = getOccurences(indicesmap, e2);
-                List<Integer> e3elts = getOccurences(indicesmap, e3);
-
-                for (Integer j : e2elts) {
-                    long n1 = 0;
-                    for (Integer e1i : e1elts) {
-                        if (e1i < j)
-                            n1++;
-                        else
-                            break;
-                    }
-
-                    long n3 = 0;
-                    for (Integer e3k : e3elts) {
-                        if (j < e3k)
-                            n3++;
-                        else
-                            continue;
-                    }
-
-                    count += n1*n3;
-                }
+            if (potentialtriplet) {
+                count += counter.getOrDefault(smaller, 0L);
+                counter.merge(bigger, histogram.getOrDefault(smaller, 0L), Long::sum);
             }
+
+            histogram.merge(bigger, 1L, Long::sum);
         }
 
         return count;

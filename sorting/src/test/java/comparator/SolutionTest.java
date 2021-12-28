@@ -1,9 +1,8 @@
-package triplets;
+package comparator;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.io.IOException;
 import java.io.InputStream;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -12,12 +11,12 @@ class SolutionTest {
 
     @BeforeEach
     void setUp() {
-        InputStream resource = SolutionTest.class.getResourceAsStream("SolutionTest_4.txt");
+        InputStream resource = SolutionTest.class.getResourceAsStream("SolutionTest_0.txt");
         System.setIn(resource);
     }
 
     @Test
-    void main() throws IOException {
+    void main() {
         Solution.main(null);
     }
 }

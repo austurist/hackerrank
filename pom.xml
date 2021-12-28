@@ -79,5 +79,6 @@
 
     <modules>
         <module>hashmaps</module>
+        <module>sorting</module>
     </modules>
 </project>
