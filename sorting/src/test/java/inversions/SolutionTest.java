@@ -12,7 +12,7 @@ class SolutionTest {
 
     @BeforeEach
     void setUp() {
-        InputStream resource = SolutionTest.class.getResourceAsStream("SolutionTest_0.txt");
+        InputStream resource = SolutionTest.class.getResourceAsStream("SolutionTest_1.txt");
         System.setIn(resource);
     }
 

@@ -14,25 +14,39 @@ import static java.util.stream.Collectors.toList;
 
 class Result {
 
-    /*
-     * Complete the 'countInversions' function below.
-     *
-     * The function is expected to return a LONG_INTEGER.
-     * The function accepts INTEGER_ARRAY arr as parameter.
-     */
-
-    public static long countInversions(List<Integer> arr) {
-        long inversions = 0;
-
-        for (int i = 0; i < arr.size()-1; ++i) {
-            for (int j = i+1; j < arr.size(); ++j) {
-                if (arr.get(i) > arr.get(j))
-                    inversions++;
+    public static long merge(List<Integer> arr, List<Integer> left, List<Integer> right) {
+        int i = 0, j = 0;
+        long count = 0;
+        while (i < left.size() || j < right.size()) {
+            if (i == left.size()) {
+                arr.set(i+j, right.get(j));
+                j++;
+            } else if (j == right.size()) {
+                arr.set(i+j, left.get(i));
+                i++;
+            } else if (left.get(i) <= right.get(j)) {
+                arr.set(i+j, left.get(i));
+                i++;
+            } else {
+                arr.set(i+j, right.get(j));
+                count += left.size()-i;
+                j++;
             }
         }
-
-        return inversions;
+        return count;
     }
+
+    public static long countInversions(List<Integer> arr) {
+        if (arr.size() < 2)
+            return 0;
+
+        int m = (arr.size() + 1) / 2;
+        List<Integer> left = new ArrayList<>(arr.subList(0, m));
+        List<Integer>  right = new ArrayList<>(arr.subList(m, arr.size()));
+
+        return countInversions(left) + countInversions(right) + merge(arr, left, right);
+    }
+
 
 }
 
