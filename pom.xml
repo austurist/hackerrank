@@ -27,6 +27,19 @@
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
+
+            <dependency>
+                <groupId>com.google.guava</groupId>
+                <artifactId>guava</artifactId>
+                <version>31.1-jre</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.commons</groupId>
+                <artifactId>commons-lang3</artifactId>
+                <version>3.8.1</version>
+            </dependency>
+
         </dependencies>
     </dependencyManagement>
 
@@ -80,5 +93,6 @@
     <modules>
         <module>hashmaps</module>
         <module>sorting</module>
+        <module>searching</module>
     </modules>
 </project>
