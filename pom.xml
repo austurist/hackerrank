@@ -94,5 +94,6 @@
         <module>hashmaps</module>
         <module>sorting</module>
         <module>searching</module>
+        <module>stringmanip</module>
     </modules>
 </project>
