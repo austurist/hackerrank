@@ -3,148 +3,88 @@ package specialsub;
 import java.io.*;
 import java.util.*;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
+import java.util.stream.*;
 
 public class Solution {
 
-    private static class Pair {
-        Integer left;
-        Integer right;
+    private static class Pair <L, R>   {
+        L left;
+        R right;
 
-        Pair(Integer left, Integer right) {
+        Pair(L left, R right) {
             this.left = left;
             this.right = right;
         }
 
-        public Integer getLeft() {
+        public L getLeft() {
             return left;
         }
 
-        public Integer getRight() {
+        public R getRight() {
             return right;
         }
 
-        Integer getKey() {
+        public L getKey() {
             return getLeft();
         }
 
-        Integer getValue() {
+        public R getValue() {
             return getRight();
         }
     }
 
-    private static class SubStrings {
-        private Map<Integer, List<Integer>> positionsOfChars;
-        private Map<Integer, List<Pair>> streaks;
+    static class SubStrings {
 
-        SubStrings(String str) {
-            Iterator<Integer> idx = Stream.iterate(0, i -> i + 1).iterator();
-            positionsOfChars = str.chars()
-                    .boxed()
-                    .map(i -> new Pair(i, idx.next()))
-                    .collect(Collectors.groupingBy(
-                            Pair::getKey,
-                            Collectors.mapping(
-                                    Pair::getValue,
-                                    Collectors.toList()
-                            )
-                    ));
+        List<Pair<Integer, Integer>> characters = new ArrayList<>();
 
-            computeAllStreaks();
+        public SubStrings(String s) {
+            Integer currentCh = null;
+            Integer streak = 0;
+            for (Iterator<Integer> it = s.chars().boxed().iterator(); it.hasNext(); ) {
+                Integer ch = it.next();
 
-            streaks
-                    .values()
-                    .forEach(this::computePalindromes);
-        }
+                if (!Objects.equals(ch, currentCh)) {
+                    // new streak begins
 
-        public int count() {
-            return streaks
-                    .values()
-                    .stream()
-                    .map(List::size)
-                    .reduce(0, Integer::sum);
-        }
+                    // save old
+                    if (currentCh != null)
+                        characters.add(new Pair<>(currentCh, streak));
 
-        private void computeAllStreaks() {
-            streaks = positionsOfChars
-                    .entrySet()
-                    .stream()
-                    .collect(
-                            Collectors.toMap(
-                                    Map.Entry::getKey,
-                                    il -> computeStreaks(il.getValue())
-                            )
-                    );
-        }
-
-        private List<Pair> computeStreaks(List<Integer> positions) {
-            List<Pair> result = new ArrayList<>();
-
-            if (positions.size() == 0) {
-                return result;
-            }
-
-            Collections.sort(positions);
-            Integer begin = positions.get(0);
-            Integer end = positions.get(0);
-            for (Integer pos : positions) {
-                if (pos != end + 1) {
-                    // new streak
-                    begin = pos;
+                    currentCh = ch;
+                    streak = 1;
+                } else {
+                    // streak continues
+                    streak++;
                 }
-                end = pos;
-                result.add(new Pair(begin, end+1));
+            }
+            // save last streak
+            characters.add(new Pair<>(currentCh, streak));
+        }
+
+        public Integer count() {
+            // count streaks
+            Integer noOfStreaks = characters
+                    .stream()
+                    .map(Pair::getRight)
+                    .map(i -> i * (i + 1) / 2)
+                    .reduce(0, Integer::sum);
+
+            Integer noOfPalindromes = 0;
+            for (Iterator<Integer> it = IntStream.range(1, characters.size() - 1).boxed().iterator(); it.hasNext(); ) {
+                Integer idx = it.next();
+
+                if (
+                        characters.get(idx-1).getKey().equals(characters.get(idx+1).getKey())
+                        && characters.get(idx).getRight() == 1
+                ) {
+                    noOfPalindromes += Math.min(characters.get(idx-1).getRight(), characters.get(idx+1).getRight());
+                }
             }
 
-            return result;
+            return noOfStreaks + noOfPalindromes;
         }
-
-        private void computePalindromes(List<Pair> streaks) {
-            Map<Integer, List<Pair>> begins = streaks
-                    .stream()
-                    .collect(Collectors.groupingBy(Pair::getLeft));
-
-            Map<Integer, List<Pair>> ends = streaks
-                    .stream()
-                    .collect(Collectors.groupingBy(Pair::getRight));
-
-            // find palindromes
-            List<Pair> palindromes = new ArrayList<>();
-            ends
-                    .keySet()
-                    .forEach(end -> {
-                        List<Pair> firsthalves = ends.get(end);
-                        List<Pair> secondhalves = begins.get(end+1);
-                        if (secondhalves != null) {
-                            // pair same sizes
-                            Map<Integer, List<Pair>> firsthalvesbysize = firsthalves
-                                    .stream()
-                                    .collect(Collectors.groupingBy(pr -> pr.getRight() - pr.getLeft()));
-
-                            Map<Integer, List<Pair>> secondhalvesbysize = secondhalves
-                                    .stream()
-                                    .collect(Collectors.groupingBy(pr -> pr.getRight() - pr.getLeft()));
-
-                            firsthalvesbysize
-                                    .keySet()
-                                    .stream()
-                                    .forEach( sz -> {
-                                        if (secondhalvesbysize.get(sz) != null) {
-                                            if (firsthalvesbysize.get(sz).size() != 1 || secondhalvesbysize.get(sz).size() != 1) {
-                                                throw new RuntimeException("wtf");
-                                            }
-                                            Pair fst = firsthalvesbysize.get(sz).get(0);
-                                            Pair snd = secondhalvesbysize.get(sz).get(0);
-                                            palindromes.add(new Pair(fst.getLeft(), snd.getRight()));
-                                        }
-                                    });
-                        }
-                    });
-            streaks.addAll(palindromes);
-
-        }
-    }
-
+    } 
+    
     // Complete the substrCount function below.
     static long substrCount(int n, String s) {
         SubStrings ss = new SubStrings(s);
